@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_move_form_vat_computation_date" model="ir.ui.view">
+        <field name="name">account.move.form.vat.computation.date</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath
+        expr="//group[@id='header_right_group']/field[@name='date']"
+        position="after"
+      >
+                <field
+          name="l10n_ar_vat_computation_date"
+          readonly="state != 'draft'"
+          invisible="move_type not in ('in_invoice', 'in_refund') or country_code != 'AR'"
+        />
+            </xpath>
+            <!-- Add button to view VAT adjustment entry from invoice -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+          name="action_view_vat_adjustment"
+          type="object"
+          class="oe_stat_button"
+          icon="fa-exchange"
+          invisible="not l10n_ar_vat_adjustment_move_id"
+          string="VAT Adjustment"
+        >
+                </button>
+                <button
+          name="action_view_source_invoice"
+          type="object"
+          class="oe_stat_button"
+          icon="fa-file-text-o"
+          invisible="not l10n_ar_vat_source_invoice_id"
+          string="Source Invoice"
+        >
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

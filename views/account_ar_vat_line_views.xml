@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Inherit the search view to modify date filter -->
+    <record id="view_account_ar_vat_line_search_vat_comp" model="ir.ui.view">
+        <field name="name">account.ar.vat.line.search.vat.comp</field>
+        <field name="model">account.ar.vat.line</field>
+        <field
+      name="inherit_id"
+      ref="l10n_ar_reports.view_account_ar_vat_line_search"
+    />
+        <field name="arch" type="xml">
+            <!-- Add vat_computation_date field to search (after date for better visibility) -->
+            <xpath expr="//field[@name='move_id']" position="after">
+                <field name="date" />
+                <field name="vat_computation_date" string="VAT Computation Date" />
+            </xpath>
+
+            <!-- Replace the date filter to use vat_computation_date -->
+            <filter name="filter_date_last_month" position="replace">
+                <filter
+          name="filter_date_last_month"
+          invisible="1"
+          string="Date: Last month"
+          domain="[
+                            '|',
+                            '&amp;', '&amp;',
+                            ('move_type', 'in', ['in_invoice', 'in_refund']),
+                            ('vat_computation_date', '!=', False),
+                            '&amp;',
+                            ('vat_computation_date', '&lt;', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
+                            ('vat_computation_date', '&gt;=', (context_today() + relativedelta(months=-1, day=1)).strftime('%Y-%m-%d')),
+                            '&amp;',
+                            '|',
+                            ('move_type', 'not in', ['in_invoice', 'in_refund']),
+                            ('vat_computation_date', '=', False),
+                            '&amp;',
+                            ('date', '&lt;', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
+                            ('date', '&gt;=', (context_today() + relativedelta(months=-1, day=1)).strftime('%Y-%m-%d'))
+                        ]"
+        />
+            </filter>
+
+            <!-- Add predefined filters for vat_computation_date -->
+            <filter name="purchase_vat" position="after">
+                <separator />
+                <filter
+          name="filter_vat_comp_current_month"
+          string="VAT Comp: Current Month"
+          domain="[
+                            ('vat_computation_date', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
+                            ('vat_computation_date', '&lt;', (context_today() + relativedelta(months=1, day=1)).strftime('%Y-%m-%d'))
+                        ]"
+        />
+                <filter
+          name="filter_vat_comp_last_month"
+          string="VAT Comp: Last Month"
+          domain="[
+                            ('vat_computation_date', '&gt;=', (context_today() + relativedelta(months=-1, day=1)).strftime('%Y-%m-%d')),
+                            ('vat_computation_date', '&lt;', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d'))
+                        ]"
+        />
+            </filter>
+
+            <!-- Add groupby for vat_computation_date -->
+            <filter name="groupby_date" position="after">
+                <filter
+          name="groupby_vat_computation_date"
+          string="VAT Computation Date"
+          context="{'group_by': 'vat_computation_date'}"
+        />
+            </filter>
+        </field>
+    </record>
+
+    <!-- Inherit the list view to add vat_computation_date column -->
+    <record id="view_account_ar_vat_line_tree_vat_comp" model="ir.ui.view">
+        <field name="name">account.ar.vat.line.list.vat.comp</field>
+        <field name="model">account.ar.vat.line</field>
+        <field name="inherit_id" ref="l10n_ar_reports.view_account_ar_vat_line_tree" />
+        <field name="arch" type="xml">
+            <!-- Add vat_computation_date after date -->
+            <field name="date" position="after">
+                <field
+          name="vat_computation_date"
+          optional="show"
+          string="VAT Comp. Date"
+          invisible="move_type not in ['in_invoice', 'in_refund']"
+        />
+            </field>
+        </field>
+    </record>
+
+    <!-- Inherit the pivot view to add vat_computation_date -->
+    <record id="view_account_ar_vat_line_pivot_vat_comp" model="ir.ui.view">
+        <field name="name">account.ar.vat.line.pivot.vat.comp</field>
+        <field name="model">account.ar.vat.line</field>
+        <field name="inherit_id" ref="l10n_ar_reports.view_account_ar_vat_line_pivot" />
+        <field name="arch" type="xml">
+            <!-- Add vat_computation_date as available field -->
+            <field name="move_type" position="after">
+                <field name="vat_computation_date" type="row" invisible="1" />
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,134 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ar_vat_computation_date
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 11:00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 11:00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_res_company__l10n_ar_vat_credit_account_id
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_res_config_settings__l10n_ar_vat_credit_account_id
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.res_config_settings_view_form
+msgid "VAT Credit Account"
+msgstr "Cuenta de IVA Crédito Fiscal"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_res_company__l10n_ar_vat_credit_account_id
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_res_config_settings__l10n_ar_vat_credit_account_id
+msgid "Account used for VAT credit in purchase invoices. This account will be replaced when invoices fall in locked periods."
+msgstr "Cuenta utilizada para el crédito de IVA en facturas de compra. Esta cuenta será reemplazada cuando las facturas caigan en períodos cerrados."
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_res_company__l10n_ar_vat_credit_to_compute_account_id
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_res_config_settings__l10n_ar_vat_credit_to_compute_account_id
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.res_config_settings_view_form
+msgid "VAT Credit To Compute Account"
+msgstr "Cuenta de IVA Crédito Fiscal a Computar"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_res_company__l10n_ar_vat_credit_to_compute_account_id
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_res_config_settings__l10n_ar_vat_credit_to_compute_account_id
+msgid "Temporary account for VAT credit to be computed in future periods. Used when purchase invoices are posted in locked tax periods."
+msgstr "Cuenta temporal para crédito de IVA a computar en períodos futuros. Se utiliza cuando las facturas de compra se contabilizan en períodos fiscales cerrados."
+
+#. module: l10n_ar_vat_computation_date
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.res_config_settings_view_form
+msgid "VAT Credit Deferred Computation"
+msgstr "Cómputo Diferido de Crédito de IVA"
+
+#. module: l10n_ar_vat_computation_date
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.res_config_settings_view_form
+msgid "Configure accounts for VAT credit computation in locked periods (Argentina)"
+msgstr "Configurar cuentas para el cómputo de crédito de IVA en períodos cerrados (Argentina)"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_computation_date
+msgid "VAT Computation Period"
+msgstr "Período de Cómputo de IVA"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_computation_date
+msgid "Date used to determine in which period the VAT credit will be computed. If the invoice date is within a locked tax period, this will be automatically set to the last day of the month following the lock date."
+msgstr "Fecha utilizada para determinar en qué período se computará el crédito de IVA. Si la fecha de la factura está dentro de un período fiscal cerrado, se establecerá automáticamente al último día del mes siguiente a la fecha de bloqueo."
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_adjustment_move_id
+msgid "VAT Adjustment Entry"
+msgstr "Asiento de Ajuste de IVA"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_adjustment_move_id
+msgid "Journal entry created to adjust VAT credit from temporary to definitive account"
+msgstr "Asiento contable creado para ajustar el crédito de IVA de la cuenta temporal a la cuenta definitiva"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_source_invoice_id
+msgid "Source Invoice"
+msgstr "Comprobante de Origen"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_source_invoice_id
+msgid "Original purchase invoice that generated this VAT adjustment entry"
+msgstr "Comprobante de compra original que generó este asiento de ajuste de IVA"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_account_move__l10n_ar_is_vat_adjustment
+msgid "Is VAT Adjustment"
+msgstr "Es Ajuste de IVA"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_account_move__l10n_ar_is_vat_adjustment
+msgid "Indicates if this entry is a VAT credit adjustment"
+msgstr "Indica si este asiento es un ajuste de crédito de IVA"
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/res_company.py:0
+#, python-format
+msgid "VAT credit accounts must be different"
+msgstr "Las cuentas de crédito de IVA deben ser diferentes"
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/res_company.py:0
+#, python-format
+msgid "Account {} must be of type Current Assets"
+msgstr "La cuenta {} debe ser de tipo Activo Corriente"
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+#, python-format
+msgid "Please configure VAT credit accounts for company %(company)s in Accounting > Configuration > Settings > Argentina"
+msgstr "Por favor configure las cuentas de crédito de IVA para la empresa %(company)s en Contabilidad > Configuración > Ajustes > Argentina"
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+#, python-format
+msgid "VAT Adjustment Journal (AJIVA) not found for company %(company)s. Please create it manually."
+msgstr "Diario de Ajuste de IVA (AJIVA) no encontrado para la empresa %(company)s. Por favor créelo manualmente."
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+#, python-format
+msgid "VAT Adjustment - %(move)s"
+msgstr "Ajuste de IVA - %(move)s"
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+#, python-format
+msgid "VAT credit computation - %(move)s"
+msgstr "Cómputo de crédito de IVA - %(move)s"
+
+#. module: l10n_ar_vat_computation_date
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.view_move_form_vat_computation_date
+msgid "VAT Adjustment"
+msgstr "Ajuste de IVA"

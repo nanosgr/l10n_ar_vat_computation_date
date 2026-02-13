@@ -1,0 +1,133 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ar_vat_computation_date
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 11:00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 11:00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_res_company__l10n_ar_vat_credit_account_id
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_res_config_settings__l10n_ar_vat_credit_account_id
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.res_config_settings_view_form
+msgid "VAT Credit Account"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_res_company__l10n_ar_vat_credit_account_id
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_res_config_settings__l10n_ar_vat_credit_account_id
+msgid "Account used for VAT credit in purchase invoices. This account will be replaced when invoices fall in locked periods."
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_res_company__l10n_ar_vat_credit_to_compute_account_id
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_res_config_settings__l10n_ar_vat_credit_to_compute_account_id
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.res_config_settings_view_form
+msgid "VAT Credit To Compute Account"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_res_company__l10n_ar_vat_credit_to_compute_account_id
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_res_config_settings__l10n_ar_vat_credit_to_compute_account_id
+msgid "Temporary account for VAT credit to be computed in future periods. Used when purchase invoices are posted in locked tax periods."
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.res_config_settings_view_form
+msgid "VAT Credit Deferred Computation"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.res_config_settings_view_form
+msgid "Configure accounts for VAT credit computation in locked periods (Argentina)"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_computation_date
+msgid "VAT Computation Period"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_computation_date
+msgid "Date used to determine in which period the VAT credit will be computed. If the invoice date is within a locked tax period, this will be automatically set to the last day of the month following the lock date."
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_adjustment_move_id
+msgid "VAT Adjustment Entry"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_adjustment_move_id
+msgid "Journal entry created to adjust VAT credit from temporary to definitive account"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_source_invoice_id
+msgid "Source Invoice"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_account_move__l10n_ar_vat_source_invoice_id
+msgid "Original purchase invoice that generated this VAT adjustment entry"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,field_description:l10n_ar_vat_computation_date.field_account_move__l10n_ar_is_vat_adjustment
+msgid "Is VAT Adjustment"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model:ir.model.fields,help:l10n_ar_vat_computation_date.field_account_move__l10n_ar_is_vat_adjustment
+msgid "Indicates if this entry is a VAT credit adjustment"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/res_company.py:0
+#, python-format
+msgid "VAT credit accounts must be different"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/res_company.py:0
+#, python-format
+msgid "Account {} must be of type Current Assets"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+#, python-format
+msgid "Please configure VAT credit accounts for company %(company)s in Accounting > Configuration > Settings > Argentina"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+#, python-format
+msgid "VAT Adjustment Journal (AJIVA) not found for company %(company)s. Please create it manually."
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+#, python-format
+msgid "VAT Adjustment - %(move)s"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+#, python-format
+msgid "VAT credit computation - %(move)s"
+msgstr ""
+
+#. module: l10n_ar_vat_computation_date
+#: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.view_move_form_vat_computation_date
+msgid "VAT Adjustment"
+msgstr ""
