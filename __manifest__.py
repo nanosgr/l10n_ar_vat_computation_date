@@ -1,6 +1,6 @@
 {
     "name": "Argentina - VAT Computation Date",
-    "version": "18.0.2.0.0",
+    "version": "18.0.2.1.0",
     "category": "Accounting/Localizations",
     "summary": "Compute VAT credit in a different period than accounting date",
     "author": "Vikingo Software",

@@ -248,6 +248,7 @@ class AccountMove(models.Model):
                             0,
                             {
                                 "account_id": company.l10n_ar_vat_credit_account_id.id,
+                                "partner_id": move.partner_id.id,
                                 "debit": vat_amount,
                                 "credit": 0.0,
                                 "name": _(
@@ -261,6 +262,7 @@ class AccountMove(models.Model):
                             0,
                             {
                                 "account_id": vat_to_compute_account.id,
+                                "partner_id": move.partner_id.id,
                                 "debit": 0.0,
                                 "credit": vat_amount,
                                 "name": _(
