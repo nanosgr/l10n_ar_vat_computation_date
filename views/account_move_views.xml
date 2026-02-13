@@ -11,7 +11,7 @@
       >
                 <field
           name="l10n_ar_vat_computation_date"
-          readonly="state != 'draft'"
+          readonly="1"
           invisible="move_type not in ('in_invoice', 'in_refund') or country_code != 'AR'"
         />
             </xpath>

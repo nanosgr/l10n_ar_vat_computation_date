@@ -15,7 +15,7 @@ class AccountMove(models.Model):
         copy=False,
         compute="_compute_l10n_ar_vat_computation_date",
         store=True,
-        readonly=False,
+        readonly=True,
     )
 
     l10n_ar_vat_adjustment_move_id = fields.Many2one(
