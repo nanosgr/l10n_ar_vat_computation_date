@@ -444,3 +444,18 @@ test_traceability_fields()
 - Developer: \***\*\*\*\*\***\_\***\*\*\*\*\*** Date: **\_\_\_**
 - QA: \***\*\*\*\*\***\_\***\*\*\*\*\*** Date: **\_\_\_**
 - Business Analyst: \***\*\*\*\*\***\_\***\*\*\*\*\*** Date: **\_\_\_**
+
+## Regression: lock date changes must not rewrite posted invoices (18.0.3.0.0)
+
+**Objective:** Verify that changing company lock dates never modifies
+`l10n_ar_vat_computation_date` of existing invoices.
+
+1. Post a purchase invoice in an open period and another one in a locked period
+   (tax lock 31/08 → computation date 30/09).
+2. Change the tax lock date (raise it, lower it, remove it) and the fiscal year
+   lock date.
+3. **Expected:** both invoices keep their computation date and the VAT book
+   keeps showing them in the same period.
+
+Automated: `tests/test_vat_computation_date.py`
+(`--test-tags /l10n_ar_vat_computation_date`).

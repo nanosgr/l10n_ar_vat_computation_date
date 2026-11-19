@@ -10,11 +10,11 @@ class AccountMove(models.Model):
     l10n_ar_vat_computation_date = fields.Date(
         string="VAT Computation Period",
         help="Date used to determine in which period the VAT credit will be computed. "
-        "If the invoice date is within a locked tax period, this will be automatically "
-        "set to the last day of the month following the lock date.",
+        "It is set once, when the invoice is posted: if the accounting date is within "
+        "a locked tax period, it is the last day of the month following the lock date; "
+        "otherwise it is the accounting date. Later changes to the company lock dates "
+        "do NOT modify it.",
         copy=False,
-        compute="_compute_l10n_ar_vat_computation_date",
-        store=True,
         readonly=True,
     )
 
@@ -57,46 +57,36 @@ class AccountMove(models.Model):
             self.move_type in ("in_invoice", "in_refund") and self.country_code == "AR"
         )
 
-    @api.depends(
-        "date",
-        "move_type",
-        "country_code",
-        "company_id.fiscalyear_lock_date",
-        "company_id.tax_lock_date",
-    )
-    def _compute_l10n_ar_vat_computation_date(self):
-        """Compute the VAT computation date based on lock dates.
+    def _l10n_ar_get_vat_computation_date(self):
+        """Return the VAT computation date for an Argentine purchase invoice.
 
-        Uses the most restrictive lock date that affects this purchase invoice
-        to determine when the VAT credit should be computed.
+        Uses the most restrictive lock date currently violated by the accounting
+        date: the VAT credit is deferred to the last day of the month following
+        that lock date. Without violated lock dates, the accounting date is used.
+
+        IMPORTANT: this is evaluated only when the invoice is posted (see
+        ``_post``). The field used to be a stored compute depending on the
+        company lock dates, so every lock date change rewrote the value of ALL
+        the purchase invoices of the company, including periods already declared.
         """
-        for move in self:
-            if (
-                move.move_type not in ("in_invoice", "in_refund")
-                or move.country_code != "AR"
-                or not move.date
-            ):
-                move.l10n_ar_vat_computation_date = False
-                continue
+        self.ensure_one()
+        if not self._is_ar_purchase_move() or not self.date:
+            return False
+        lock_dates = self.company_id._get_violated_lock_dates(
+            self.date,
+            has_tax=True,  # Purchase invoices affect tax reports
+            journal=self.journal_id,
+        )
+        if not lock_dates:
+            return self.date
+        most_restrictive_lock_date = lock_dates[-1][0]  # sorted chronologically
+        return most_restrictive_lock_date + relativedelta(months=1, day=31)
 
-            # Check all lock dates that could affect this purchase invoice
-            lock_dates = move.company_id._get_violated_lock_dates(
-                move.date,
-                has_tax=True,  # Purchase invoices affect tax reports
-                journal=move.journal_id,
-            )
-
-            if not lock_dates:
-                # No lock dates violated, use the invoice date
-                move.l10n_ar_vat_computation_date = move.date
-            else:
-                # Use the last day of the month following the most restrictive lock date
-                most_restrictive_lock_date = lock_dates[-1][
-                    0
-                ]  # Last one is most recent
-                move.l10n_ar_vat_computation_date = (
-                    most_restrictive_lock_date + relativedelta(months=1)
-                )
+    @api.onchange("date", "move_type", "journal_id")
+    def _onchange_l10n_ar_vat_computation_date(self):
+        """Preview the VAT computation date on draft invoices (set for real on post)."""
+        for move in self.filtered(lambda m: m.state == "draft"):
+            move.l10n_ar_vat_computation_date = move._l10n_ar_get_vat_computation_date()
 
     def _check_fiscal_lock_dates(self):
         """Override to skip check for Argentine purchase invoices.
@@ -147,7 +137,21 @@ class AccountMove(models.Model):
         )
 
     def _post(self, soft=True):
-        """Override to replace VAT accounts in invoices posted in locked periods."""
+        """Override to fix the VAT computation date and replace VAT accounts in
+        invoices posted in locked periods."""
+        # Fix the VAT computation date at posting time (it is never recomputed
+        # afterwards). Invoices reset to draft that already have a posted VAT
+        # adjustment entry keep their value, to stay aligned with that entry.
+        for move in self.filtered(lambda m: m._is_ar_purchase_move()):
+            if (
+                move.l10n_ar_vat_computation_date
+                and move.l10n_ar_vat_adjustment_move_id.state == "posted"
+            ):
+                continue
+            new_date = move._l10n_ar_get_vat_computation_date()
+            if move.l10n_ar_vat_computation_date != new_date:
+                move.l10n_ar_vat_computation_date = new_date
+
         # Identify AR purchase invoices with deferred VAT computation
         ar_purchase_deferred = self.filtered(
             lambda m: m._is_ar_purchase_move()
