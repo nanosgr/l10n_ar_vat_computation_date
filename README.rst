@@ -1,6 +1,6 @@
-=============================
+================================
 Argentina - VAT Computation Date
-=============================
+================================
 
 ..
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -31,6 +31,8 @@ Features
 ========
 
 * Automatically calculates VAT computation date when posting invoices in locked periods
+* The VAT computation date is fixed at posting time: later changes to the company
+  lock dates (tax, fiscal year, sale/purchase, hard) never modify it
 * Replaces VAT credit account with temporary account in original entry
 * Creates adjustment entry on computation date to move VAT to definitive account
 * Multi-company configuration for VAT account mapping
@@ -58,12 +60,31 @@ The module works automatically:
 #. Post the invoice
 #. The system will:
 
-   * Calculate `l10n_ar_vat_computation_date` (first day of next open period)
+   * Calculate `l10n_ar_vat_computation_date`: the accounting date if it is not
+     locked, otherwise the last day of the month following the most restrictive
+     lock date (e.g. lock 30/09 -> 31/10). The value is set once, on posting.
    * Replace VAT credit account with temporary account in the invoice entry
    * Create and post an adjustment entry on the computation date
    * Link both entries for traceability
 
 #. Use smart buttons to navigate between invoice and adjustment entry
+
+Changelog
+=========
+
+18.0.3.0.0
+~~~~~~~~~~
+
+* ``l10n_ar_vat_computation_date`` is no longer a stored compute depending on
+  ``company_id.tax_lock_date`` / ``company_id.fiscalyear_lock_date``. Before,
+  every lock date change recomputed the field for ALL the purchase invoices of
+  the company (including periods already declared to ARCA), setting them to
+  "lock date + 1 month". Now it is a regular field set in ``_post``. Existing
+  values are kept on upgrade (no recompute).
+* Invoices reset to draft that already have a posted VAT adjustment entry keep
+  their VAT computation date when posted again.
+* Deferred date is now the last day of the month following the lock date
+  (previously lock date + 1 month, e.g. 30/09 -> 30/10).
 
 Bug Tracker
 ===========

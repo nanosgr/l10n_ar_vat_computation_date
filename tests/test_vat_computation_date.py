@@ -1,0 +1,119 @@
+from datetime import date
+
+from odoo import Command
+from odoo.tests import tagged
+
+from odoo.addons.l10n_ar.tests.common import TestArCommon
+
+
+@tagged("post_install", "-at_install")
+class TestVatComputationDate(TestArCommon):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = cls.company_ri
+        cls.env.user.company_id = cls.company
+        cls.purchase_journal = cls.company_data["default_journal_purchase"]
+        cls.tax_21 = cls.env["account.tax"].search(
+            [
+                ("company_id", "=", cls.company.id),
+                ("type_tax_use", "=", "purchase"),
+                ("amount", "=", 21),
+                ("amount_type", "=", "percent"),
+            ],
+            limit=1,
+        )
+        vat_account = cls.tax_21.invoice_repartition_line_ids.filtered(
+            lambda rl: rl.repartition_type == "tax"
+        ).account_id
+        to_compute = cls.env["account.account"].create(
+            {
+                "name": "IVA Credito Fiscal a Computar",
+                "code": "1.1.4.99.999",
+                "account_type": "asset_current",
+                "company_ids": [Command.link(cls.company.id)],
+            }
+        )
+        cls.company.write(
+            {
+                "l10n_ar_vat_credit_account_id": vat_account.id,
+                "l10n_ar_vat_credit_to_compute_account_id": to_compute.id,
+            }
+        )
+        cls.env["account.journal"].create(
+            {
+                "name": "Ajustes IVA",
+                "code": "AJIVA",
+                "type": "general",
+                "company_id": cls.company.id,
+            }
+        )
+        cls._seq = 0
+
+    def _bill(self, bill_date):
+        type(self)._seq += 1
+        bill = self.env["account.move"].create(
+            {
+                "move_type": "in_invoice",
+                "partner_id": self.res_partner_adhoc.id,
+                "journal_id": self.purchase_journal.id,
+                "invoice_date": bill_date,
+                "date": bill_date,
+                "l10n_latam_document_type_id": self.env.ref("l10n_ar.dc_a_f").id,
+                "l10n_latam_document_number": "00001-%08d" % self._seq,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Servicio",
+                            "quantity": 1,
+                            "price_unit": 1000,
+                            "tax_ids": [Command.set(self.tax_21.ids)],
+                        }
+                    )
+                ],
+            }
+        )
+        bill.action_post()
+        return bill
+
+    def test_open_period_uses_accounting_date(self):
+        bill = self._bill(date(2026, 10, 15))
+        self.assertEqual(bill.l10n_ar_vat_computation_date, date(2026, 10, 15))
+        self.assertFalse(bill.l10n_ar_vat_adjustment_move_id)
+
+    def test_locked_period_defers_to_end_of_next_month(self):
+        self.company.tax_lock_date = date(2026, 9, 30)
+        bill = self._bill(date(2026, 9, 10))
+        self.assertEqual(bill.date, date(2026, 9, 10))
+        self.assertEqual(bill.l10n_ar_vat_computation_date, date(2026, 10, 31))
+        adj = bill.l10n_ar_vat_adjustment_move_id
+        self.assertTrue(adj)
+        self.assertEqual(adj.date, date(2026, 10, 31))
+
+    def test_lock_date_changes_do_not_rewrite_posted_bills(self):
+        old_open = self._bill(date(2026, 8, 20))
+        self.company.tax_lock_date = date(2026, 8, 31)
+        deferred = self._bill(date(2026, 8, 25))
+        expected = {
+            old_open: date(2026, 8, 20),
+            deferred: date(2026, 9, 30),
+        }
+        for move, value in expected.items():
+            self.assertEqual(move.l10n_ar_vat_computation_date, value)
+
+        bills = old_open | deferred
+        for vals in (
+            {"tax_lock_date": date(2026, 10, 31)},  # raise the lock
+            {"fiscalyear_lock_date": date(2026, 6, 30)},
+            {"tax_lock_date": False, "fiscalyear_lock_date": False},  # lower it
+            {"tax_lock_date": date(2026, 9, 30)},
+        ):
+            self.company.write(vals)
+            self.env.flush_all()
+            bills.invalidate_recordset(["l10n_ar_vat_computation_date"])
+            for move, value in expected.items():
+                self.assertEqual(
+                    move.l10n_ar_vat_computation_date,
+                    value,
+                    "Lock date change %s rewrote %s" % (vals, move.name),
+                )
