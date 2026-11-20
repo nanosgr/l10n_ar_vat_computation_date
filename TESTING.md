@@ -459,3 +459,22 @@ test_traceability_fields()
 
 Automated: `tests/test_vat_computation_date.py`
 (`--test-tags /l10n_ar_vat_computation_date`).
+
+## Closed fiscal years are enforced for AR purchase invoices (18.0.3.1.0)
+
+**Objective:** Verify that the fiscal year lock date and the hard lock date
+apply to Argentine purchase invoices, while purchase/tax locks still defer VAT.
+
+1. Set the fiscal year lock date to 31/12/2025.
+2. Try to post a purchase invoice dated 15/06/2025. **Expected:** error
+   "You cannot add/modify entries prior to and inclusive of ...", no AJIVA.
+3. Try to reset to draft, edit a line or delete a posted 2025 invoice.
+   **Expected:** same error.
+4. Repeat 2-3 with the hard lock date. **Expected:** same error.
+5. Create a lock exception for the user on the fiscal year lock date.
+   **Expected:** posting is allowed (standard behaviour).
+6. Set purchase and tax lock dates to 30/09/2026 and post an invoice dated
+   10/09/2026. **Expected:** posted with its original date, VAT computation
+   date 31/10/2026 and AJIVA entry.
+
+Automated: `tests/test_vat_computation_date.py`.

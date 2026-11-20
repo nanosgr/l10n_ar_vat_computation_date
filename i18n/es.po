@@ -132,3 +132,15 @@ msgstr "Cómputo de crédito de IVA - %(move)s"
 #: model_terms:ir.ui.view,arch_db:l10n_ar_vat_computation_date.view_move_form_vat_computation_date
 msgid "VAT Adjustment"
 msgstr "Ajuste de IVA"
+
+#. module: l10n_ar_vat_computation_date
+#. odoo-python
+#: code:addons/l10n_ar_vat_computation_date/models/account_move.py:0
+msgid ""
+"You cannot add/modify entries prior to and inclusive of: %(lock_date_info)s. "
+"The accounting date of %(move)s belongs to a closed fiscal year: change it to "
+"a date in an open period."
+msgstr ""
+"No puede agregar/modificar asientos anteriores o iguales a: %(lock_date_info)s. "
+"La fecha contable de %(move)s pertenece a un ejercicio cerrado: cámbiela por "
+"una fecha de un período abierto."

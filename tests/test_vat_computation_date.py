@@ -1,6 +1,7 @@
-from datetime import date
+from datetime import date, timedelta
 
-from odoo import Command
+from odoo import Command, fields
+from odoo.exceptions import UserError
 from odoo.tests import tagged
 
 from odoo.addons.l10n_ar.tests.common import TestArCommon
@@ -50,7 +51,7 @@ class TestVatComputationDate(TestArCommon):
         )
         cls._seq = 0
 
-    def _bill(self, bill_date):
+    def _bill(self, bill_date, post=True):
         type(self)._seq += 1
         bill = self.env["account.move"].create(
             {
@@ -73,7 +74,8 @@ class TestVatComputationDate(TestArCommon):
                 ],
             }
         )
-        bill.action_post()
+        if post:
+            bill.action_post()
         return bill
 
     def test_open_period_uses_accounting_date(self):
@@ -117,3 +119,80 @@ class TestVatComputationDate(TestArCommon):
                     value,
                     "Lock date change %s rewrote %s" % (vals, move.name),
                 )
+
+    # ------------------------------------------------------------------
+    # Closed fiscal years (fiscal year / hard lock dates) - 18.0.3.1.0
+    # ------------------------------------------------------------------
+
+    def _adjustment_count(self):
+        return self.env["account.move"].search_count(
+            [("company_id", "=", self.company.id), ("l10n_ar_is_vat_adjustment", "=", True)]
+        )
+
+    def test_fiscalyear_lock_blocks_posting(self):
+        self.company.fiscalyear_lock_date = date(2025, 12, 31)
+        bill = self._bill(date(2025, 6, 15), post=False)
+        before = self._adjustment_count()
+        with self.assertRaisesRegex(UserError, "closed fiscal year"):
+            bill.action_post()
+        self.assertEqual(bill.state, "draft")
+        self.assertEqual(self._adjustment_count(), before)
+
+    def test_fiscalyear_lock_blocks_reset_to_draft(self):
+        bill = self._bill(date(2025, 6, 15))
+        self.company.fiscalyear_lock_date = date(2025, 12, 31)
+        with self.assertRaisesRegex(UserError, "closed fiscal year"):
+            bill.button_draft()
+        self.assertEqual(bill.state, "posted")
+
+    def test_fiscalyear_lock_blocks_line_edit_and_unlink(self):
+        bill = self._bill(date(2025, 6, 15))
+        self.company.fiscalyear_lock_date = date(2025, 12, 31)
+        product_line = bill.invoice_line_ids[:1]
+        other_account = self.company_data["default_account_expense"].copy()
+        with self.assertRaisesRegex(UserError, "closed fiscal year"):
+            product_line.write({"account_id": other_account.id})
+        with self.assertRaisesRegex(UserError, "closed fiscal year"):
+            product_line.unlink()
+
+    def test_hard_lock_blocks(self):
+        bill = self._bill(date(2025, 6, 15))
+        draft = self._bill(date(2025, 6, 20), post=False)
+        draft.unlink()  # hard lock refuses to be set with unposted entries
+        self.company.hard_lock_date = date(2025, 12, 31)
+        with self.assertRaisesRegex(UserError, "closed fiscal year"):
+            bill.button_draft()
+        with self.assertRaisesRegex(UserError, "closed fiscal year"):
+            bill.invoice_line_ids[:1].unlink()
+        late = self._bill(date(2025, 7, 1), post=False)
+        with self.assertRaisesRegex(UserError, "closed fiscal year"):
+            late.action_post()
+
+    def test_lock_exception_allows_posting(self):
+        self.company.fiscalyear_lock_date = date(2025, 12, 31)
+        self.env["account.lock_exception"].create(
+            {
+                "company_id": self.company.id,
+                "user_id": self.env.user.id,
+                "fiscalyear_lock_date": date(2025, 1, 1),
+                "end_datetime": fields.Datetime.now() + timedelta(hours=24),
+                "reason": "test_lock_exception_allows_posting",
+            }
+        )
+        bill = self._bill(date(2025, 6, 15))
+        self.assertEqual(bill.state, "posted")
+        self.assertEqual(bill.date, date(2025, 6, 15))
+
+    def test_purchase_and_tax_lock_still_defer(self):
+        self.company.write(
+            {
+                "fiscalyear_lock_date": date(2025, 12, 31),
+                "purchase_lock_date": date(2026, 9, 30),
+                "tax_lock_date": date(2026, 9, 30),
+            }
+        )
+        bill = self._bill(date(2026, 9, 10))
+        self.assertEqual(bill.state, "posted")
+        self.assertEqual(bill.date, date(2026, 9, 10))
+        self.assertEqual(bill.l10n_ar_vat_computation_date, date(2026, 10, 31))
+        self.assertEqual(bill.l10n_ar_vat_adjustment_move_id.date, date(2026, 10, 31))

@@ -33,6 +33,10 @@ Features
 * Automatically calculates VAT computation date when posting invoices in locked periods
 * The VAT computation date is fixed at posting time: later changes to the company
   lock dates (tax, fiscal year, sale/purchase, hard) never modify it
+* Purchase and tax lock dates only defer the VAT credit (the accounting date is
+  kept). Fiscal year and hard lock dates are enforced: Argentine purchase
+  invoices cannot be posted, reset to draft, modified or deleted inside a
+  closed fiscal year
 * Replaces VAT credit account with temporary account in original entry
 * Creates adjustment entry on computation date to move VAT to definitive account
 * Multi-company configuration for VAT account mapping
@@ -71,6 +75,17 @@ The module works automatically:
 
 Changelog
 =========
+
+18.0.3.1.0
+~~~~~~~~~~
+
+* Argentine purchase invoices no longer skip the fiscal year lock date and the
+  hard lock date. Before, ``_check_fiscal_lock_dates`` ignored every lock date
+  for them, so invoices of a closed fiscal year could be posted, reset to
+  draft or deleted after the closing. Only the purchase lock date is still
+  ignored on the accounting date (the tax lock date is checked against the VAT
+  computation date, as before). User lock exceptions on the fiscal year lock
+  date keep working as in standard Odoo.
 
 18.0.3.0.0
 ~~~~~~~~~~

@@ -3,6 +3,8 @@ from dateutil.relativedelta import relativedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from odoo.addons.account.models.account_move import BYPASS_LOCK_CHECK
+
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -89,29 +91,55 @@ class AccountMove(models.Model):
             move.l10n_ar_vat_computation_date = move._l10n_ar_get_vat_computation_date()
 
     def _check_fiscal_lock_dates(self):
-        """Override to skip check for Argentine purchase invoices.
+        """Override for Argentine purchase invoices.
 
-        For Argentine purchase invoices, we skip the fiscal lock date check on the
-        accounting date (date field), as we use l10n_ar_vat_computation_date for
-        tax reporting instead. The tax lock date will be checked against
-        l10n_ar_vat_computation_date in _check_tax_lock_date on the move lines.
+        Argentine purchase invoices keep their accounting date when it falls in
+        a period locked for purchases or taxes: the VAT credit is deferred
+        through ``l10n_ar_vat_computation_date`` (checked against the tax lock
+        date in ``account.move.line._check_tax_lock_date``). Therefore the
+        purchase lock date is NOT checked on the accounting date.
+
+        The fiscal year lock date and the hard lock date ARE still enforced:
+        nothing can be posted, reset to draft, modified or deleted inside a
+        closed fiscal year.
         """
-        # Filter out Argentine purchase invoices from the check
-        moves_to_check = self.filtered(lambda m: not m._is_ar_purchase_move())
-
-        # Only check non-Argentine purchase invoices
-        if moves_to_check:
-            return super(AccountMove, moves_to_check)._check_fiscal_lock_dates()
-
+        if self.env.context.get("bypass_lock_check") is BYPASS_LOCK_CHECK:
+            return True
+        ar_purchases = self.filtered(lambda m: m._is_ar_purchase_move())
+        for move in ar_purchases:
+            violated_lock_dates = move.company_id._get_lock_date_violations(
+                move.date,
+                fiscalyear=True,
+                sale=False,
+                purchase=False,
+                tax=False,
+                hard=True,
+            )
+            if violated_lock_dates:
+                raise UserError(
+                    _(
+                        "You cannot add/modify entries prior to and inclusive of: "
+                        "%(lock_date_info)s. The accounting date of %(move)s "
+                        "belongs to a closed fiscal year: change it to a date in "
+                        "an open period.",
+                        lock_date_info=self.env["res.company"]._format_lock_dates(
+                            violated_lock_dates
+                        ),
+                        move=move.display_name,
+                    )
+                )
+        other_moves = self - ar_purchases
+        if other_moves:
+            return super(AccountMove, other_moves)._check_fiscal_lock_dates()
         return True
 
     def _get_violated_lock_dates(self, invoice_date, has_tax):
-        """Override to prevent lock date violations for Argentine purchase invoices.
+        """Override to keep the accounting date of Argentine purchase invoices.
 
-        For Argentine purchase invoices, we don't consider lock dates when checking
-        the accounting date (date field), because we want to keep the original
-        invoice date. The lock dates are checked against l10n_ar_vat_computation_date
-        instead.
+        For Argentine purchase invoices no lock date is reported here, so the
+        accounting date is never moved automatically. Purchase/tax locks defer
+        the VAT credit (l10n_ar_vat_computation_date); fiscal year/hard locks
+        block the operation in ``_check_fiscal_lock_dates``.
         """
         self.ensure_one()
         # For Argentine purchase invoices, return empty to avoid date adjustment
@@ -139,6 +167,10 @@ class AccountMove(models.Model):
     def _post(self, soft=True):
         """Override to fix the VAT computation date and replace VAT accounts in
         invoices posted in locked periods."""
+        # Closed fiscal years (fiscal year / hard lock dates) cannot receive
+        # Argentine purchase invoices: fail before touching any line.
+        self.filtered(lambda m: m._is_ar_purchase_move())._check_fiscal_lock_dates()
+
         # Fix the VAT computation date at posting time (it is never recomputed
         # afterwards). Invoices reset to draft that already have a posted VAT
         # adjustment entry keep their value, to stay aligned with that entry.
